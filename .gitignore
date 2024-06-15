@@ -1,0 +1,43 @@
+# Ignore data files
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.h5
+*.feather
+*.pkl
+
+# Ignore text-based data files
+*.txt
+*.json
+
+# Ignore dataset directories (if data is stored in separate folders)
+/data/
+/raw_data/
+/datasets/
+
+# Ignore model files
+*.hdf5
+*.joblib
+
+# Ignore virtual environment files
+venv/
+env/
+*.env
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore log files
+*.log
+
+# Ignore system and IDE files
+.DS_Store
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
