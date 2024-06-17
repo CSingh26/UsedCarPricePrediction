@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 
 import warnings
 import re
@@ -51,10 +54,60 @@ trainData['HorsePower'] = pd.to_numeric(trainData['HorsePower'], errors= 'coerce
 trainData['Displacement'] = trainData['Displacement'].str.replace('L', '')
 trainData['Displacement'] = pd.to_numeric(trainData['Displacement'], errors='coerce')
 
-#cleaning accident and clean title column
-trainData['accident'] = trainData['accident'].map({'None reported': 0}).fillna(1)
-trainData['clean_title'] = trainData['clean_title'].map({'Yes': 1}).fillna(0)
+trainData.drop(['model', 'engine', 'model_year', 'ext_col', 'int_col', 'clean_title', 'accident'], axis=1 ,inplace=True)
 
-trainData.drop(['model', 'engine', 'model_year', 'ext_col', 'int_col'], axis=1 ,inplace=True)
+#removing the outliers
+q1 = trainData['price'].quantile(0.25)
+q3 = trainData['price'].quantile(0.75)
+IQR = q3 - q1
 
-print(trainData.head())
+trainData = trainData[~((trainData['price'] < (q1 - 1.5 * IQR)) | (trainData['price'] > (q3 + 0.7 * IQR)))]
+
+#without proper feature selection
+trainData = pd.get_dummies(trainData, columns=['brand', 'fuel_type', 'transmission'], drop_first=True)
+trainData.fillna(0, inplace=True)
+
+X = trainData.drop(['price', 'id'], axis=1)
+y = trainData['price']
+
+X['age'] = trainData['age']
+X['HorsePower'] = trainData['HorsePower']
+X['Displacement'] = trainData['Displacement']
+
+XTrain, XValid, yTrain, yValid = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#ForestRegressor Model
+
+#model
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+
+model.fit(XTrain, yTrain)
+
+yPred = model.predict(XValid)
+rmse = np.sqrt(mean_squared_error(yValid, yPred))
+
+#predicitng test data
+testData['age'] = 2024 - testData['model_year']
+
+testData[['HorsePower', 'Displacement']] = testData['engine'].apply(extHorsePower).apply(pd.Series)
+
+testData['HorsePower'] = pd.to_numeric(testData['HorsePower'], errors= 'coerce')
+testData['Displacement'] = testData['Displacement'].str.replace('L', '')
+testData['Displacement'] = pd.to_numeric(testData['Displacement'], errors='coerce')
+
+testData.fillna(0, inplace=True)
+testData = pd.get_dummies(testData, columns=['brand', 'fuel_type', 'transmission'], drop_first=True)
+
+missing_cols = set(X.columns) - set(testData.columns)
+for col in missing_cols:
+    testData[col] = 0
+
+testDataPred = testData[X.columns]
+
+testPred = model.predict(testDataPred)
+
+submission = pd.DataFrame({'id': testData['id'], 'price': testPred})
+submission.to_csv('submission.csv', index=False)
+
+print(submission.head())
+#leaderboard-position : 861
