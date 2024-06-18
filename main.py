@@ -1,12 +1,16 @@
 import pandas as pd
 import numpy as np
 import re
+
 import keras_tuner as kt
+
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
+
 from keras._tf_keras.keras.models import Sequential
 from keras._tf_keras.keras.layers import Dense
 from keras._tf_keras.keras.optimizers import Adam, RMSprop, SGD
@@ -157,4 +161,18 @@ bestModel.fit(X_train, y_train, epochs=50, validation_data=(X_valid, y_valid))
 testPred3 = bestModel.predict(testData).flatten()
 submission = pd.DataFrame({'id': testID, 'price': testPred3})
 submission.to_csv('submission3.csv', index=False)
+print(submission.head())
+
+#desicion-tree
+tree = DecisionTreeRegressor(max_depth=10, min_samples_leaf=10, splitter='best')
+tree.fit(X_train, y_train)
+
+ypred = tree.predict(X_valid)
+rmseDT = np.sqrt(mean_squared_error(y_valid, ypred))
+
+print('Decision Tree RMSE Score:', rmseDT)
+
+testPred4 = tree.predict(testData)
+submission = pd.DataFrame({'id': testID, 'price': testPred4})
+submission.to_csv('submission4.csv', index=False)
 print(submission.head())
