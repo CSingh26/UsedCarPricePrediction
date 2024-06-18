@@ -37,6 +37,7 @@ env/
 .idea/
 *.sublime-project
 *.sublime-workspace
+/tuner_dir
 
 # Ignore compiled Python files
 *.pyc
