@@ -8,7 +8,6 @@
 *.pkl
 
 # Ignore text-based data files
-*.txt
 *.json
 
 # Ignore dataset directories (if data is stored in separate folders)
